@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reels Sniffer — Leaderboard</title>
+  <style>
+    :root {
+      --bg: #0f0f10;
+      --panel: #1a1a1c;
+      --panel2: #232326;
+      --border: #2e2e32;
+      --text: #f2f2f3;
+      --muted: #9a9aa2;
+      --accent: #7b3ff2;
+      --accent2: #c9a0ff;
+      --pink: #e0245e;
+      --gold: #ffcb45;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    a { color: inherit; }
+    header {
+      position: sticky; top: 0; z-index: 10; background: rgba(15,15,16,.92);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
+      padding: 14px 22px;
+    }
+    .bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; cursor: pointer; }
+    .brand img { width: 26px; height: 26px; border-radius: 7px; }
+    .count { background: var(--accent); color: #fff; font-weight: 700; font-size: 12px; border-radius: 11px; padding: 2px 10px; }
+    .crumb { color: var(--muted); font-size: 13px; }
+    .crumb b { color: var(--accent2); }
+    .spacer { flex: 1 1 auto; }
+    .search { position: relative; flex: 0 1 260px; }
+    .search input {
+      width: 100%; padding: 9px 12px 9px 34px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--panel); color: var(--text);
+      font-size: 14px; outline: none;
+    }
+    .search input:focus { border-color: var(--accent); }
+    .search svg { position: absolute; left: 10px; top: 9px; color: var(--muted); }
+    select, .btn {
+      padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--panel); color: var(--text); font-size: 13px; cursor: pointer;
+    }
+    .btn:hover, select:hover { background: var(--panel2); }
+    .btn.accent { background: var(--accent); border-color: var(--accent); font-weight: 600; }
+    .btn.danger { color: var(--pink); }
+    main { padding: 20px 22px 90px; }
+
+    /* ---- users overview ---- */
+    .users { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    .ucard {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px; cursor: pointer; position: relative; transition: border-color .12s, transform .12s;
+    }
+    .ucard:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .ucard .uname { font-weight: 700; font-size: 16px; color: var(--accent2); margin-bottom: 10px; word-break: break-all; }
+    .ucard .urow { display: flex; justify-content: space-between; font-size: 13px; margin: 4px 0; }
+    .ucard .urow .lbl { color: var(--muted); }
+    .ucard .urow .val { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .ucard .val.top { color: var(--gold); }
+    .ucard .udate { color: var(--muted); font-size: 11px; margin-top: 10px; }
+    .ucard .udel {
+      position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%;
+      border: 0; background: var(--panel2); color: var(--muted); cursor: pointer; font-size: 14px;
+      line-height: 1; display: none;
+    }
+    .ucard:hover .udel { display: block; }
+    .ucard .udel:hover { background: var(--pink); color: #fff; }
+
+    /* ---- leaderboard ---- */
+    .lead { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+    .rcard {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      overflow: hidden; display: flex; flex-direction: column; position: relative;
+    }
+    .thumb { position: relative; aspect-ratio: 9 / 16; background: var(--panel2); display: block; overflow: hidden; cursor: pointer; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; text-align: center; padding: 10px; }
+    .rank {
+      position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.66); color: #fff;
+      font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 9px; font-variant-numeric: tabular-nums;
+    }
+    .rank.g1 { background: linear-gradient(135deg,#ffd94a,#e0a500); color:#3a2a00; }
+    .rank.g2 { background: linear-gradient(135deg,#e3e3ea,#a9a9b6); color:#26262c; }
+    .rank.g3 { background: linear-gradient(135deg,#e2a15c,#b9713a); color:#2a1600; }
+    .views-badge {
+      position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,.72); color: #fff;
+      font-size: 14px; font-weight: 800; padding: 4px 10px; border-radius: 10px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .views-badge svg { width: 13px; height: 13px; }
+    .rbody { padding: 9px 11px 11px; display: flex; justify-content: space-between; align-items: center; }
+    .rbody .code { color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; }
+    .rbody .open { color: var(--accent2); text-decoration: none; font-size: 12px; font-weight: 600; }
+    .rbody .open:hover { text-decoration: underline; }
+
+    .pager { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 26px; flex-wrap: wrap; }
+    .pager .btn[disabled] { opacity: .4; cursor: default; }
+    .pageinfo { color: var(--muted); font-size: 13px; }
+    .empty-state { text-align: center; color: var(--muted); padding: 80px 20px; }
+    .empty-state h2 { color: var(--text); margin-bottom: 6px; }
+
+    /* ---- 9:16 embed modal ---- */
+    .modal-back { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; background: rgba(0,0,0,.8); backdrop-filter: blur(4px); }
+    .modal-back.show { display: flex; }
+    .mv-topbar {
+      flex: 0 0 auto; z-index: 4; width: min(520px, 94vw); padding: 10px 14px; text-align: center;
+      background: rgba(11,11,12,.92); border: 1px solid var(--border); border-top: 0; border-radius: 0 0 14px 14px;
+    }
+    .mv-title { font-weight: 700; font-size: 14px; }
+    .mv-title .v { color: var(--gold); }
+    .mv-stage { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+    .modal { position: relative; background: #000; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 24px 70px rgba(0,0,0,.7); min-width: 220px; min-height: 300px; }
+    .modal iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+    .modal-grip { position: absolute; bottom: 0; right: 0; z-index: 3; width: 22px; height: 22px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 0 45%, rgba(255,255,255,.55) 45% 55%, transparent 55% 70%, rgba(255,255,255,.55) 70% 80%, transparent 80%); }
+    .modal.resizing iframe { pointer-events: none; }
+    .mv-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 52px; height: 52px; border-radius: 50%; border: 0; cursor: pointer; background: rgba(0,0,0,.55); color: #fff; font-size: 30px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+    .mv-nav:hover { background: var(--accent); }
+    .mv-nav:disabled { opacity: .25; cursor: default; background: rgba(0,0,0,.55); }
+    .mv-prev { left: 18px; }
+    .mv-next { right: 18px; }
+    .modal-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(0,0,0,.65); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; }
+    .modal-close:hover { background: var(--pink); }
+    .modal-open { position: absolute; bottom: 10px; right: 12px; z-index: 2; color: #fff; background: rgba(0,0,0,.6); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600; text-decoration: none; }
+    .modal-open:hover { background: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="brand" id="brand">
+        <img src="icons/icon48.png" alt="" />
+        <span>Reels Sniffer</span>
+        <span class="count" id="count">0</span>
+      </div>
+      <span class="crumb" id="crumb"></span>
+      <div class="spacer"></div>
+      <label class="search" id="searchWrap" style="display:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        <input id="search" type="search" placeholder="Search shortcode…" autocomplete="off" />
+      </label>
+      <select id="sortMode" title="Sort" style="display:none">
+        <option value="views-desc">Views ↓</option>
+        <option value="views-asc">Views ↑</option>
+        <option value="recent">Recently captured</option>
+      </select>
+      <select id="perpage" title="Per page" style="display:none">
+        <option value="24">24 / page</option>
+        <option value="48">48 / page</option>
+        <option value="96">96 / page</option>
+      </select>
+      <button class="btn" id="json" style="display:none">Export JSON</button>
+      <button class="btn" id="csv" style="display:none">Export CSV</button>
+      <button class="btn" id="back" style="display:none">← All users</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="users" id="users"></div>
+    <div class="lead" id="lead" style="display:none"></div>
+    <div class="empty-state" id="empty" style="display:none">
+      <h2>No users scanned yet</h2>
+      <p>Open an Instagram profile's <b>Reels</b> tab (instagram.com/username/reels/), run the sniffer's auto-scroll, then come back here.</p>
+    </div>
+    <div class="pager" id="pager"></div>
+  </main>
+
+  <div class="modal-back" id="modalBack">
+    <div class="mv-topbar" id="mvTopbar">
+      <div class="mv-title" id="mvTitle"></div>
+    </div>
+    <button class="mv-nav mv-prev" id="mvPrev" title="Previous (←)">‹</button>
+    <button class="mv-nav mv-next" id="mvNext" title="Next (→)">›</button>
+    <div class="mv-stage">
+      <div class="modal" id="modal">
+        <button class="modal-close" id="modalClose" title="Close (Esc)">×</button>
+        <a class="modal-open" id="modalOpen" target="_blank" rel="noopener">Open on IG ↗</a>
+        <iframe id="modalFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <div class="modal-grip" id="modalGrip" title="Drag to resize"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="manager.js"></script>
+</body>
+</html>

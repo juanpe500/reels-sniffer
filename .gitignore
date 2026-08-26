@@ -1,0 +1,38 @@
+# ── OS cruft ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ── Editors / IDEs ───────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Secrets / env (never commit) ─────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Node / tooling (none required, but keep it clean) ────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ── Local scratch / exports ──────────────────────────────
+*.log
+scratch/
+tmp/
+dist/
+*.zip
+reels_*.json
+reels_*.csv
+
+# ── Claude / session state ───────────────────────────────
+_STATE.md
+.claude/
